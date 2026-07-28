@@ -15,9 +15,11 @@
   "license": "ISC",
   "dependencies": {
     "@types/busboy": "^1.5.4",
+    "@types/supertest": "^7.2.1",
     "busboy": "^1.6.0",
     "csv-parser": "^3.2.1",
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "supertest": "^7.2.2"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
