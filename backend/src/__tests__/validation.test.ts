@@ -83,7 +83,9 @@ describe('RowSchema', () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error.issues[0].message).toContain('não existe para a etapa');
+      expect(result.error.issues[0].message).toContain(
+        `"${invalidRow.variavel}" não existe para o nível "${invalidRow.ensino_tipo}"`
+      );
     }
   });
 });
