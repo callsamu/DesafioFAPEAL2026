@@ -1,4 +1,9 @@
-import { snakeCase, index } from "drizzle-orm/pg-core";
+import { snakeCase, index, varchar } from "drizzle-orm/pg-core";
+
+export const batchTable = snakeCase.table('batches', (t) => ({
+    id: t.serial().primaryKey(),
+    status: varchar({ enum: ['pending', 'completed']}).notNull()
+}));
 
 export const metricsTable = snakeCase.table('metrics', (t) => ({
     id: t.serial().primaryKey(),
@@ -10,6 +15,7 @@ export const metricsTable = snakeCase.table('metrics', (t) => ({
     schoolNetwork: t.text().notNull(),
     educationLevel: t.text().notNull(),
     value: t.numeric().notNull(), 
+    batchId: t.integer().references(() => batchTable.id)
 }), (t) => [
     index('aggregates_idx')
         .on(t.year, t.variable, t.schoolNetwork, t.educationLevel)
