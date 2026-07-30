@@ -1,10 +1,7 @@
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { Request, Response } from 'express';
 import busboy from 'busboy';
 import { CSVParser } from './parser';
-import { batchTable, metricsTable } from './db/schema';
-import { assert } from 'node:console';
-import { eq } from 'drizzle-orm';
+import { MetricsRepository } from './repositories/metrics';
 
 type Handler = (req: Request, res: Response) => void;
 
@@ -12,7 +9,7 @@ export const healthcheck: Handler = (req, res) => {
     res.status(200).json({ status: 'ok' })
 };
 
-export function upload(db: NodePgDatabase): Handler {
+export function upload(repo: MetricsRepository): Handler {
     return async (req, res) => {
         const bb = busboy({ headers: req.headers });
         let batchId: number;
@@ -25,33 +22,23 @@ export function upload(db: NodePgDatabase): Handler {
             }
             gotFile = true;
 
-            const inserts: Promise<unknown>[] = [];
+            const inserts: Promise<void>[] = [];
 
             const parser = new CSVParser({
                 batchSize: 5000,
                 onBatch: async (batch) => {
                     if (!batchId) {
-                        const ids = await db
-                            .insert(batchTable)
-                            .values({ status: 'pending'})
-                            .returning({ id: batchTable.id });
-                        assert(ids.length == 1);
-                        batchId = ids[0].id;
+                        const result = await repo.createBatch();
+                        batchId = result.batchId;
                     }
-
-                    const batchWithId = batch.map(b => ({ ...b, batchId }))
-                    const insert = db.insert(metricsTable).values(batchWithId);
-                    inserts.push(insert);
+                    inserts.push(repo.insertMetrics(batch, batchId));
                 },
             });
 
             parser.parse(fileStream)
                 .then(async (result) => {
                     await Promise.all(inserts);
-                    await db
-                        .update(batchTable)
-                        .set({ status: 'completed' })
-                        .where(eq(batchTable.id, batchId));
+                    await repo.completeBatch(batchId);
 
                     res.status(200).json({
                         read: result.read,
@@ -64,14 +51,14 @@ export function upload(db: NodePgDatabase): Handler {
                     if (!res.headersSent) {
                         res.status(400).json({ error: err.message });
                     }
-                    if (batchId) await db.delete(metricsTable).where(eq(metricsTable.batchId, batchId));
+                    if (batchId) await repo.deleteByBatchId(batchId);
                 });
         });
 
         bb.on('error', async (err: Error) => {
             if (!res.headersSent) {
                 res.status(400).json({ error: err.message });
-                if (batchId) await db.delete(metricsTable).where(eq(metricsTable.batchId, batchId));
+                if (batchId) await repo.deleteByBatchId(batchId);
             }
         });
 
