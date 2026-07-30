@@ -2,7 +2,7 @@ import { Readable } from "node:stream";
 import csv from "csv-parser";
 import { validateHeader } from "./validation/headers";
 import { ReadStream } from "node:fs";
-import { DataRecord, Row, RowSchema, rowToRecord } from "./validation/schema";
+import { MetricsRecord, Row, RowSchema, rowToRecord } from "./validation/schema";
 import { assert } from "node:console";
 
 export interface ParseResult {
@@ -14,7 +14,7 @@ export interface ParseResult {
 
 export interface ParserArgs {
     batchSize: number;
-    onBatch(batch: DataRecord[]): void;
+    onBatch(batch: MetricsRecord[]): void;
 }
 
 export class CSVParseError extends Error {}
@@ -26,7 +26,7 @@ export class CSVParser {
 
     readonly batchSize: number;
 
-    private records: DataRecord[] = [];
+    private records: MetricsRecord[] = [];
 
     onBatch: ParserArgs["onBatch"];
 

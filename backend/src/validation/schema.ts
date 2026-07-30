@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { metricsTable } from '../db/schema';
 
 export const SourceEnum = z.enum([
   'censo_escolar',
@@ -131,19 +132,9 @@ export const RowSchema = z
 
 export type Row = z.infer<typeof RowSchema>;
 
-export interface DataRecord {
-  municipalityCode: string;
-  municipalityName: string;
-  year: number;
-  source: z.infer<typeof SourceEnum>;
-  variable: z.infer<typeof VariableEnum>;
-  schoolNetwork: z.infer<typeof SchoolNetworkEnum>;
-  educationLevel: z.infer<typeof EducationLevelEnum>;
-  value: number;
-  batchId?: number;
-}
- 
-export function rowToRecord(row: Row): DataRecord {
+export type MetricsRecord = typeof metricsTable.$inferInsert;
+
+export function rowToRecord(row: Row): MetricsRecord {
   return {
     municipalityCode: row.co_mun,
     municipalityName: row.no_mun,

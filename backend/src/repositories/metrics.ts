@@ -1,6 +1,6 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { and, eq, gte, lte, sql } from 'drizzle-orm';
-import { DataRecord, EducationLevelEnum, SchoolNetworkEnum, VariableEnum } from '../validation/schema';
+import { MetricsRecord, EducationLevelEnum, SchoolNetworkEnum, VariableEnum } from '../validation/schema';
 import { batchTable, metricsTable } from '../db/schema';
 import { SourceEnum } from '../validation/schema';
 import z from 'zod';
@@ -40,7 +40,7 @@ export interface FilterListing {
 
 export interface MetricsRepository {
   createBatch(): Promise<BatchResult>;
-  insertMetrics(records: DataRecord[], batchId: number): Promise<void>;
+  insertMetrics(records: MetricsRecord[], batchId: number): Promise<void>;
   completeBatch(batchId: number): Promise<void>;
   deleteByBatchId(batchId: number): Promise<void>;
   listFilters(): Promise<FilterListing>;
@@ -57,7 +57,7 @@ export class DrizzleMetricsRepository implements MetricsRepository {
     return { batchId: ids[0].id };
   }
 
-  async insertMetrics(records: DataRecord[], batchId: number): Promise<void> {
+  async insertMetrics(records: MetricsRecord[], batchId: number): Promise<void> {
     const rows = records.map(r => ({ ...r, batchId }));
     await this.db.insert(metricsTable).values(rows);
   }
@@ -96,7 +96,7 @@ export class DrizzleMetricsRepository implements MetricsRepository {
     }
   }
 
-  async data(f: Partial<Filters>, page: EmptyPage): Promise<Page<DataRecord>> {
+  async data(f: Partial<Filters>, page: EmptyPage): Promise<Page<MetricsRecord>> {
     const conditions = [];
 
     if (f.level) {
@@ -127,7 +127,7 @@ export class DrizzleMetricsRepository implements MetricsRepository {
 
     return {
       ...page,
-      data: result as DataRecord[],
+      data: result as MetricsRecord[],
     };
   }
 }
