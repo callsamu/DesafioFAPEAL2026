@@ -1,5 +1,5 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { eq, sql } from 'drizzle-orm';
+import { and, eq, gte, lte, sql } from 'drizzle-orm';
 import { DataRecord, EducationLevelEnum, SchoolNetworkEnum, VariableEnum } from '../validation/schema';
 import { batchTable, metricsTable } from '../db/schema';
 import { SourceEnum } from '../validation/schema';
@@ -12,6 +12,23 @@ export interface BatchResult {
 
 
 type Sources = z.infer<typeof SourceEnum>;
+
+export interface Page<T> {
+  size: number;
+  offset: number;
+  data: T[];
+}
+
+export type EmptyPage = Omit<Page<any>, 'data'>;
+
+export interface Filters {
+  municipality: string;
+  startYear: number;
+  endYear: number;
+  network: z.infer<typeof SchoolNetworkEnum>;
+  level: z.infer<typeof EducationLevelEnum>;
+  variable: z.infer<typeof VariableEnum>;
+}
 
 export interface FilterListing {
   municipalities: string[];
@@ -77,5 +94,40 @@ export class DrizzleMetricsRepository implements MetricsRepository {
       levels: EducationLevelEnum.options,
       variables: VariableEnum.options,
     }
+  }
+
+  async data(f: Partial<Filters>, page: EmptyPage): Promise<Page<DataRecord>> {
+    const conditions = [];
+
+    if (f.level) {
+      conditions.push(eq(metricsTable.educationLevel, f.level));
+    }
+
+    if (f.municipality) {
+      conditions.push(eq(metricsTable.municipalityName, f.municipality));
+    }
+
+    if (f.startYear) {
+      conditions.push(gte(metricsTable.year, f.startYear));
+    }
+
+    if (f.endYear) {
+      conditions.push(lte(metricsTable.year, f.endYear));
+    }
+
+    conditions.push(eq(metricsTable.schoolNetwork, f.network ?? "Total"));
+
+    const result = await this.db
+      .select()
+      .from(metricsTable)
+      .where(and(...conditions))
+      .orderBy(metricsTable.id)
+      .limit(page.size)
+      .offset(page.size * (page.offset - 1));
+
+    return {
+      ...page,
+      data: result as DataRecord[],
+    };
   }
 }

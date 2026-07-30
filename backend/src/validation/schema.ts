@@ -140,6 +140,7 @@ export interface DataRecord {
   schoolNetwork: z.infer<typeof SchoolNetworkEnum>;
   educationLevel: z.infer<typeof EducationLevelEnum>;
   value: number;
+  batchId?: number;
 }
  
 export function rowToRecord(row: Row): DataRecord {
