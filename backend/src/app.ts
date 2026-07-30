@@ -13,5 +13,7 @@ export function createApp(opts: AppOpts) {
     app.get('/api/healthcheck', handlers.healthcheck);
     app.post('/api/upload', handlers.upload(repo));
 
+    app.get('/api/filters', handlers.listFilters(repo));
+
     return app;
 }

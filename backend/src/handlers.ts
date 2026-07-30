@@ -71,3 +71,10 @@ export function upload(repo: MetricsRepository): Handler {
         req.pipe(bb);
     };
 }
+
+export function listFilters(repo: MetricsRepository): Handler {
+    return async (req, res) => {
+        const filters = await repo.listFilters();
+        res.status(200).json(filters);
+    };
+}
