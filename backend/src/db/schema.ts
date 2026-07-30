@@ -14,7 +14,7 @@ export const metricsTable = snakeCase.table('metrics', (t) => ({
     variable: t.text().notNull(),
     schoolNetwork: t.text().notNull(),
     educationLevel: t.text().notNull(),
-    value: t.numeric().notNull(), 
+    value: t.numeric().$type<number>().notNull(), 
     batchId: t.integer().references(() => batchTable.id)
 }), (t) => [
     index('aggregates_idx')

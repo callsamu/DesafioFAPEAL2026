@@ -86,7 +86,6 @@ export class CSVParser {
 
     onEnd(): ParseResult {
         if (this.records.length > 0) {
-            console.log(this.records);
             this.sendBatch();
         }
 
