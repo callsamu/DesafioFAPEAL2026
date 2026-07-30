@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { EXPECTED_HEADER, validateHeader } from '../validation/headers';
-import { RowSchema, rowToRecord } from '../validation/schema';
+import { RowSchema } from '../validation/rows';
+import { rowToRecord } from '../record';
 
 
 describe('validateHeader', () => {

@@ -1,7 +1,8 @@
 import { Readable } from 'node:stream';
 import { describe, it, expect, vi } from 'vitest';
 import { CSVParser, CSVParseError } from '../parser';
-import { RowSchema, MetricsRecord, rowToRecord } from '../validation/schema';
+import { RowSchema } from '../validation/rows';
+import { MetricsRecord, rowToRecord } from '../record';
 
 const HEADER = 'co_mun,no_mun,ano,fonte,variavel,ensino_rede,ensino_tipo,valor';
 const FIELDS = HEADER.split(',');

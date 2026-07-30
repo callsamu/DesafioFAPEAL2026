@@ -2,7 +2,8 @@ import { Readable } from "node:stream";
 import csv from "csv-parser";
 import { validateHeader } from "./validation/headers";
 import { ReadStream } from "node:fs";
-import { MetricsRecord, Row, RowSchema, rowToRecord } from "./validation/schema";
+import { Row, RowSchema } from "./validation/rows";
+import { MetricsRecord, rowToRecord } from "./record";
 import { assert } from "node:console";
 
 export interface ParseResult {
