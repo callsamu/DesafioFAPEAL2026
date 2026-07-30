@@ -1,6 +1,6 @@
-import { pgTable, index } from "drizzle-orm/pg-core";
+import { snakeCase, index } from "drizzle-orm/pg-core";
 
-export const metricsTable = pgTable('metrics', (t) => ({
+export const metricsTable = snakeCase.table('metrics', (t) => ({
     id: t.serial().primaryKey(),
     municipalityCode: t.varchar({ length: 7 }).notNull(),
     municipalityName: t.text().notNull(),
