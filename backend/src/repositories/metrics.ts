@@ -1,17 +1,15 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { and, eq, gte, lte, sql } from 'drizzle-orm';
 import { MetricsRecord } from '../record';
-import { EducationLevelEnum, SchoolNetworkEnum, VariableEnum, SourceEnum } from '../validation/enums';
+import { EducationLevelEnum, SchoolNetworkEnum, VariableEnum } from '../validation/enums';
 import { batchTable, metricsTable } from '../db/schema';
 import z from 'zod';
 import { assert } from 'node:console';
+import { Filters } from '../validation/queries';
 
 export interface BatchResult {
   batchId: number;
 }
-
-
-type Sources = z.infer<typeof SourceEnum>;
 
 export interface Page<T> {
   size: number;
@@ -20,15 +18,6 @@ export interface Page<T> {
 }
 
 export type EmptyPage = Omit<Page<any>, 'data'>;
-
-export interface Filters {
-  municipality: string;
-  startYear: number;
-  endYear: number;
-  network: z.infer<typeof SchoolNetworkEnum>;
-  level: z.infer<typeof EducationLevelEnum>;
-  variable: z.infer<typeof VariableEnum>;
-}
 
 export interface FilterListing {
   municipalities: string[];
@@ -44,10 +33,39 @@ export interface MetricsRepository {
   completeBatch(batchId: number): Promise<void>;
   deleteByBatchId(batchId: number): Promise<void>;
   listFilters(): Promise<FilterListing>;
+  listData(filters: Filters, page: EmptyPage): Promise<Page<MetricsRecord>>;
 }
 
 export class DrizzleMetricsRepository implements MetricsRepository {
   constructor(private db: NodePgDatabase) {}
+
+  private filtersClause(f: Filters) {
+    const conditions = [];
+
+    if (f.level) {
+      conditions.push(eq(metricsTable.educationLevel, f.level));
+    }
+
+    if (f.municipality) {
+      conditions.push(eq(metricsTable.municipalityName, f.municipality));
+    }
+
+    if (f.startYear) {
+      conditions.push(gte(metricsTable.year, f.startYear));
+    }
+
+    if (f.endYear) {
+      conditions.push(lte(metricsTable.year, f.endYear));
+    }
+
+    if (f.variable) {
+      conditions.push(eq(metricsTable.variable, f.variable))
+    }
+
+    conditions.push(eq(metricsTable.schoolNetwork, f.network ?? "Total"));
+
+    return and(...conditions);
+  }
 
   async createBatch(): Promise<BatchResult> {
     const ids = await this.db
@@ -96,31 +114,11 @@ export class DrizzleMetricsRepository implements MetricsRepository {
     }
   }
 
-  async data(f: Partial<Filters>, page: EmptyPage): Promise<Page<MetricsRecord>> {
-    const conditions = [];
-
-    if (f.level) {
-      conditions.push(eq(metricsTable.educationLevel, f.level));
-    }
-
-    if (f.municipality) {
-      conditions.push(eq(metricsTable.municipalityName, f.municipality));
-    }
-
-    if (f.startYear) {
-      conditions.push(gte(metricsTable.year, f.startYear));
-    }
-
-    if (f.endYear) {
-      conditions.push(lte(metricsTable.year, f.endYear));
-    }
-
-    conditions.push(eq(metricsTable.schoolNetwork, f.network ?? "Total"));
-
+  async listData(f: Filters, page: EmptyPage): Promise<Page<MetricsRecord>> {
     const result = await this.db
       .select()
       .from(metricsTable)
-      .where(and(...conditions))
+      .where(this.filtersClause(f))
       .orderBy(metricsTable.id)
       .limit(page.size)
       .offset(page.size * (page.offset - 1));

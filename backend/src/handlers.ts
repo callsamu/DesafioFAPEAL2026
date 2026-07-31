@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import busboy from 'busboy';
 import { CSVParser } from './parser';
 import { MetricsRepository } from './repositories/metrics';
+import { DataQuerySchema } from './validation/queries';
 
 type Handler = (req: Request, res: Response) => void;
 
@@ -76,5 +77,19 @@ export function listFilters(repo: MetricsRepository): Handler {
     return async (req, res) => {
         const filters = await repo.listFilters();
         res.status(200).json(filters);
+    };
+}
+
+export function listData(repo: MetricsRepository): Handler {
+    return async (req, res) => {
+        const parsed = DataQuerySchema.safeParse(req.query);
+        if (!parsed.success) {
+            res.status(400).json({ error: parsed.error.issues });
+            return;
+        }
+
+        const { size, page: offset, ...filters } = parsed.data;
+        const page = await repo.listData(filters, { size, offset });
+        res.status(200).json(page);
     };
 }

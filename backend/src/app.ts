@@ -14,6 +14,7 @@ export function createApp(opts: AppOpts) {
     app.post('/api/upload', handlers.upload(repo));
 
     app.get('/api/filters', handlers.listFilters(repo));
+    app.get('/api/data', handlers.listData(repo));
 
     return app;
 }
