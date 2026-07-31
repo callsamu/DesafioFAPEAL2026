@@ -1,7 +1,6 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { and, eq, gte, lte, sql } from 'drizzle-orm';
 import { MetricsRecord } from '../record';
-import { EducationLevelEnum, SchoolNetworkEnum, VariableEnum } from '../validation/enums';
 import { batchTable, metricsTable } from '../db/schema';
 import z from 'zod';
 import { assert } from 'node:console';
@@ -22,9 +21,9 @@ export type EmptyPage = Omit<Page<any>, 'data'>;
 export interface FilterListing {
   municipalities: string[];
   years: number[];
-  networks: typeof SchoolNetworkEnum.options;
-  levels: typeof EducationLevelEnum.options;
-  variables: typeof VariableEnum.options;
+  networks: string[];
+  levels: string[];
+  variables: string[];
 }
 
 export interface MetricsRepository {
@@ -95,7 +94,10 @@ export class DrizzleMetricsRepository implements MetricsRepository {
     const result = await this.db.execute(sql`
       SELECT json_build_object(
         'municipalities', json_agg(DISTINCT municipality_name),
-        'years', json_agg(DISTINCT year)
+        'years', json_agg(DISTINCT year),
+        'networks', json_agg(DISTINCT school_network),
+        'levels', json_agg(DISTINCT education_level),
+        'variables', json_agg(DISTINCT variable)
       ) as filters 
       FROM ${metricsTable}
     `) 
@@ -103,15 +105,10 @@ export class DrizzleMetricsRepository implements MetricsRepository {
     assert(result.rowCount == 1);
     
     const [{ filters }] = result.rows as unknown as {
-      filters: Pick<FilterListing, 'municipalities' | 'years'>
+      filters: FilterListing
     }[];
 
-    return {
-      ...filters,
-      networks: SchoolNetworkEnum.options,
-      levels: EducationLevelEnum.options,
-      variables: VariableEnum.options,
-    }
+    return filters;
   }
 
   async listData(f: Filters, page: EmptyPage): Promise<Page<Omit<MetricsRecord, 'batchId'>>> {
