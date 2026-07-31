@@ -6,8 +6,16 @@ import { DataQuerySchema, FiltersSchema } from './validation/queries';
 
 type Handler = (req: Request, res: Response) => void;
 
+function success(res: Response, data: unknown) {
+    res.status(200).json({ status: 'success', data });
+}
+
+function error(res: Response, message: unknown, statusCode = 400) {
+    res.status(statusCode).json({ status: 'error', error: message });
+}
+
 export const healthcheck: Handler = (req, res) => {
-    res.status(200).json({ status: 'ok' })
+    success(res, { status: 'ok' });
 };
 
 export function upload(repo: MetricsRepository): Handler {
@@ -41,7 +49,7 @@ export function upload(repo: MetricsRepository): Handler {
                     await Promise.all(inserts);
                     await repo.completeBatch(batchId);
 
-                    res.status(200).json({
+                    success(res, {
                         read: result.read,
                         imported: result.imported,
                         rejected: result.rejected,
@@ -50,7 +58,7 @@ export function upload(repo: MetricsRepository): Handler {
                 })
                 .catch(async (err: Error) => {
                     if (!res.headersSent) {
-                        res.status(400).json({ error: err.message });
+                        error(res, err.message);
                     }
                     if (batchId) await repo.deleteByBatchId(batchId);
                 });
@@ -58,14 +66,14 @@ export function upload(repo: MetricsRepository): Handler {
 
         bb.on('error', async (err: Error) => {
             if (!res.headersSent) {
-                res.status(400).json({ error: err.message });
+                error(res, err.message);
                 if (batchId) await repo.deleteByBatchId(batchId);
             }
         });
 
         bb.on('close', () => {
             if (!gotFile && !res.headersSent) {
-                res.status(400).json({ error: 'Nenhum arquivo enviado' });
+                error(res, 'Nenhum arquivo enviado');
             }
         });
 
@@ -76,7 +84,7 @@ export function upload(repo: MetricsRepository): Handler {
 export function listFilters(repo: MetricsRepository): Handler {
     return async (req, res) => {
         const filters = await repo.listFilters();
-        res.status(200).json(filters);
+        success(res, filters);
     };
 }
 
@@ -84,13 +92,13 @@ export function listData(repo: MetricsRepository): Handler {
     return async (req, res) => {
         const parsed = DataQuerySchema.safeParse(req.query);
         if (!parsed.success) {
-            res.status(400).json({ error: parsed.error.issues });
+            error(res, parsed.error.issues);
             return;
         }
 
         const { size, page: offset, ...filters } = parsed.data;
         const page = await repo.listData(filters, { size, offset });
-        res.status(200).json(page);
+        success(res, page);
     };
 }
 
@@ -98,11 +106,11 @@ export function indicators(repo: MetricsRepository): Handler {
     return async (req, res) => {
         const parsed = FiltersSchema.safeParse(req.query);
         if (!parsed.success) {
-            res.status(400).json({ error: parsed.error.issues });
+            error(res, parsed.error.issues);
             return;
         }
 
         const result = await repo.indicators(parsed.data);
-        res.status(200).json(result);
+        success(res, result);
     };
 }
