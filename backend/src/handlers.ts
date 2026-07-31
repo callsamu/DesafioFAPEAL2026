@@ -3,6 +3,7 @@ import busboy from 'busboy';
 import { CSVParser } from './parser';
 import { MetricsRepository } from './repositories/metrics';
 import { DataQuerySchema, FiltersSchema } from './validation/queries';
+import { formatZodError } from './validation/errors';
 
 type Handler = (req: Request, res: Response) => void;
 
@@ -92,7 +93,7 @@ export function listData(repo: MetricsRepository): Handler {
     return async (req, res) => {
         const parsed = DataQuerySchema.safeParse(req.query);
         if (!parsed.success) {
-            error(res, parsed.error.issues);
+            error(res, formatZodError(parsed.error));
             return;
         }
 
@@ -106,7 +107,7 @@ export function indicators(repo: MetricsRepository): Handler {
     return async (req, res) => {
         const parsed = FiltersSchema.safeParse(req.query);
         if (!parsed.success) {
-            error(res, parsed.error.issues);
+            error(res, formatZodError(parsed.error));
             return;
         }
 

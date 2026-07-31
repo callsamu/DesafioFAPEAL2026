@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { EXPECTED_HEADER, validateHeader } from '../validation/headers';
 import { RowSchema } from '../validation/rows';
 import { rowToRecord } from '../record';
+import { DataQuerySchema } from '../validation/queries';
 
 
 describe('validateHeader', () => {
@@ -86,6 +87,20 @@ describe('RowSchema', () => {
     if (!result.success) {
       expect(result.error.issues[0].message).toContain(
         `"${invalidRow.variavel}" não existe para o nível "${invalidRow.ensino_tipo}"`
+      );
+    }
+  });
+});
+
+describe('DataQuerySchema', () => {
+  it('localized reports of invalid enum options', () => {
+    const result = DataQuerySchema.safeParse({ network: 'Estado' });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toEqual(['network']);
+      expect(result.error.issues[0].message).toBe(
+        "opção inválida, deve ser 'Estadual','Municipal','Federal','Privada','Pública','Total','Não se aplica'"
       );
     }
   });

@@ -4,13 +4,14 @@ import { validateHeader } from "./validation/headers";
 import { ReadStream } from "node:fs";
 import { Row, RowSchema } from "./validation/rows";
 import { MetricsRecord, rowToRecord } from "./record";
+import { formatZodError } from "./validation/errors";
 import { assert } from "node:console";
 
 export interface ParseResult {
     read: number;
     imported: number;
     rejected: number;
-    errors: Map<number, string>;
+    errors: Map<number, string[]>;
 }
 
 export interface ParserArgs {
@@ -23,7 +24,7 @@ export class CSVParseError extends Error {}
 export class CSVParser {
     index = 0;
     rejected = 0;
-    errors = new Map<number, string>;
+    errors = new Map<number, string[]>;
 
     readonly batchSize: number;
 
@@ -77,7 +78,7 @@ export class CSVParser {
         const { data: row, success, error } = RowSchema.safeParse(raw);
         if (!success) {
             this.rejected += 1;
-            this.errors.set(this.index, error.message);
+            this.errors.set(this.index, formatZodError(error));
             return;
         }
 
