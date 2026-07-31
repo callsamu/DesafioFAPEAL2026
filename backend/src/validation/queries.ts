@@ -7,6 +7,7 @@ import {
 
 export const FiltersSchema = z.object({
   municipality: z.string().optional(),
+  year: z.coerce.number().int().optional(),
   startYear: z.coerce.number().int().optional(),
   endYear: z.coerce.number().int().optional(),
   network: SchoolNetworkEnum.optional(),

@@ -57,12 +57,16 @@ export class DrizzleMetricsRepository implements MetricsRepository {
       conditions.push(eq(t.municipalityName, f.municipality));
     }
 
-    if (f.startYear) {
-      conditions.push(gte(t.year, f.startYear));
-    }
+    if (f.year) {
+      conditions.push(eq(t.year, f.year));
+    } else {
+      if (f.startYear) {
+        conditions.push(gte(t.year, f.startYear));
+      }
 
-    if (f.endYear) {
-      conditions.push(lte(t.year, f.endYear));
+      if (f.endYear) {
+        conditions.push(lte(t.year, f.endYear));
+      }
     }
 
     if (f.variable) {
