@@ -1,7 +1,7 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { and, eq, gte, lte, sql } from 'drizzle-orm';
 import { MetricsRecord } from '../record';
-import { EducationLevelEnum, SchoolNetworkEnum, VariableEnum, SourceEnum } from '../validation/rows';
+import { EducationLevelEnum, SchoolNetworkEnum, VariableEnum, SourceEnum } from '../validation/enums';
 import { batchTable, metricsTable } from '../db/schema';
 import z from 'zod';
 import { assert } from 'node:console';
