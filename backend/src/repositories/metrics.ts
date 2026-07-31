@@ -33,7 +33,7 @@ export interface MetricsRepository {
   completeBatch(batchId: number): Promise<void>;
   deleteByBatchId(batchId: number): Promise<void>;
   listFilters(): Promise<FilterListing>;
-  listData(filters: Filters, page: EmptyPage): Promise<Page<MetricsRecord>>;
+  listData(filters: Filters, page: EmptyPage): Promise<Page<Omit<MetricsRecord, 'batchId'>>>;
 }
 
 export class DrizzleMetricsRepository implements MetricsRepository {
@@ -114,7 +114,7 @@ export class DrizzleMetricsRepository implements MetricsRepository {
     }
   }
 
-  async listData(f: Filters, page: EmptyPage): Promise<Page<MetricsRecord>> {
+  async listData(f: Filters, page: EmptyPage): Promise<Page<Omit<MetricsRecord, 'batchId'>>> {
     const result = await this.db
       .select()
       .from(metricsTable)
@@ -123,9 +123,12 @@ export class DrizzleMetricsRepository implements MetricsRepository {
       .limit(page.size)
       .offset(page.size * (page.offset - 1));
 
+    const data = (result as MetricsRecord[])
+      .map(({ batchId: _batchId, ...rest }) => rest);
+
     return {
       ...page,
-      data: result as MetricsRecord[],
+      data,
     };
   }
 }
