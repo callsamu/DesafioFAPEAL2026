@@ -1,10 +1,11 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { and, eq, gte, lte, sql, sum, type Query } from 'drizzle-orm';
+import { and, eq, gte, lte, max, min, sql, sum, type Query } from 'drizzle-orm';
 import { MetricsRecord } from '../record';
 import { batchTable, metricsTable } from '../db/schema';
 import { assert } from 'node:console';
 import { Filters } from '../validation/queries';
 import { alias, AnyPgTable } from 'drizzle-orm/pg-core';
+import { RowSchema } from '../validation/rows';
 
 export interface BatchResult {
   batchId: number;
@@ -32,6 +33,11 @@ export interface Indicators {
   taxaMediaDeAprovacao: number | null;
 }
 
+export interface SeriesData {
+  year: number;
+  value: number | null;
+}
+
 export interface MetricsRepository {
   createBatch(): Promise<BatchResult>;
   insertMetrics(records: MetricsRecord[], batchId: number): Promise<void>;
@@ -40,6 +46,7 @@ export interface MetricsRepository {
   listFilters(): Promise<FilterListing>;
   listData(filters: Filters, page: EmptyPage): Promise<Page<Omit<MetricsRecord, 'batchId'>>>;
   indicators(filters: Filters): Promise<Indicators>;
+  series(filters: Filters): Promise<SeriesData[]>;
 }
 
 export class DrizzleMetricsRepository implements MetricsRepository {
@@ -201,5 +208,29 @@ export class DrizzleMetricsRepository implements MetricsRepository {
       .reduce((a, b) => ({ ...a, ...b }), {}) as Indicators;
 
     return indicators;
+  }
+
+  async series({ year, startYear, endYear, ...f} : Filters): Promise<SeriesData[]> {
+    const { rows } = await this.db.execute(sql<SeriesData>`
+      WITH 
+      year_range AS (
+        SELECT MIN(year) as a, MAX(year) as b
+        FROM metrics
+      ),
+      years AS (
+        SELECT generate_series(a, b, 1) AS year
+        FROM year_range 
+      )
+      SELECT y.year, value
+      FROM years y
+      LEFT JOIN ${metricsTable} m
+      ON m.year = y.year
+      AND m.variable = ${f.variable}
+      AND municipality_name = ${f.municipality}
+      AND school_network = ${f.network ?? 'Total'}
+      AND education_level = ${f.level ?? 'Ensino Fundamental'} 
+    `);
+
+    return rows as unknown as SeriesData[];
   }
 }

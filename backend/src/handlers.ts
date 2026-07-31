@@ -115,3 +115,16 @@ export function indicators(repo: MetricsRepository): Handler {
         success(res, result);
     };
 }
+
+export function series(repo: MetricsRepository): Handler {
+    return async (req, res) => {
+        const parsed = FiltersSchema.safeParse(req.query);
+        if (!parsed.success) {
+            error(res, formatZodError(parsed.error));
+            return;
+        }
+
+        const result = await repo.series(parsed.data);
+        success(res, result);
+    };
+}

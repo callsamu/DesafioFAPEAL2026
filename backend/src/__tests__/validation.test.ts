@@ -100,7 +100,7 @@ describe('DataQuerySchema', () => {
     if (!result.success) {
       expect(result.error.issues[0].path).toEqual(['network']);
       expect(result.error.issues[0].message).toBe(
-        "opção inválida, deve ser 'Estadual','Municipal','Federal','Privada','Pública','Total','Não se aplica'"
+        "deve ser 'Estadual','Municipal','Federal','Privada','Pública','Total','Não se aplica'"
       );
     }
   });
