@@ -43,7 +43,10 @@ export class CSVParser {
             new Map() : this.errors;
 
         return new Promise<ParseResult>((resolve, reject) => {
-            const parser = csv();
+            const parser = csv({
+                skipComments: true
+            });
+
             stream.pipe(parser)
                 .on('data', this.onData.bind(this))
                 .on('headers', headers => {
