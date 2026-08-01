@@ -3,7 +3,7 @@ import { and, eq, gte, lte, max, min, sql, sum, type Query } from 'drizzle-orm';
 import { MetricsRecord } from '../record';
 import { batchTable, metricsTable } from '../db/schema';
 import { assert } from 'node:console';
-import { Filters } from '../validation/queries';
+import { Filters, VariableFilters } from '../validation/queries';
 import { alias, AnyPgTable } from 'drizzle-orm/pg-core';
 import { RowSchema } from '../validation/rows';
 
@@ -130,7 +130,7 @@ export class DrizzleMetricsRepository implements MetricsRepository {
     return filters;
   }
 
-  async listData(f: Filters, page: EmptyPage): Promise<Page<Omit<MetricsRecord, 'batchId'>>> {
+  async listData(f: VariableFilters, page: EmptyPage): Promise<Page<Omit<MetricsRecord, 'batchId'>>> {
     const result = await this.db
       .select()
       .from(metricsTable)
@@ -166,7 +166,7 @@ export class DrizzleMetricsRepository implements MetricsRepository {
           ...this.filterConditions(metricsTable, {
             ...f,
             variable: 'Escolas',
-            level: f.level ?? 'Ensino Fundamental',
+            level: f.level,
           }),
         )
       );
@@ -210,7 +210,23 @@ export class DrizzleMetricsRepository implements MetricsRepository {
     return indicators;
   }
 
-  async series({ year, startYear, endYear, ...f} : Filters): Promise<SeriesData[]> {
+  async ranking({ municipality, ...f }: VariableFilters) {
+    const result = await this.db
+      .select({
+        municipality: metricsTable.municipalityName,
+        value: metricsTable.value,
+      })
+      .from(metricsTable)
+      .where(
+        and(
+          ...this.filterConditions(metricsTable, f)
+        )
+      );
+
+    return result;
+  }
+
+  async series({ year, startYear, endYear, ...f} : VariableFilters): Promise<SeriesData[]> {
     const { rows } = await this.db.execute(sql<SeriesData>`
       WITH 
       year_range AS (

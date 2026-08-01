@@ -17,6 +17,13 @@ export const FiltersSchema = z.object({
 
 export type Filters = z.infer<typeof FiltersSchema>;
 
+export const VariableFiltersSchema = FiltersSchema.required({ 
+  variable: true,
+  level: true,
+});
+
+export type VariableFilters = z.infer<typeof FiltersSchema>;
+
 export const PaginationSchema = z.object({
   size: z.coerce.number().int().positive().default(20),
   page: z.coerce.number().int().positive().default(1),
