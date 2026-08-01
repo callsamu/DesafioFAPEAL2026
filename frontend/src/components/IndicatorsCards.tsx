@@ -23,17 +23,17 @@ export function IndicatorsCards() {
     {
       title: 'Matrículas',
       description: 'Total de matrículas',
-      value: formatValue(indicators?.matriculas, numberFormat),
+      value: formatValue(indicators?.enrollments, numberFormat),
     },
     {
       title: 'Ofertas / Escolas',
       description: 'Total de escolas',
-      value: formatValue(indicators?.ofertasEscolas, numberFormat),
+      value: formatValue(indicators?.offers, numberFormat),
     },
     {
       title: 'Taxa média de aprovação',
       description: 'Média ponderada',
-      value: formatValue(indicators?.taxaMediaDeAprovacao, percentFormat, '%'),
+      value: formatValue(indicators?.averageApproval, percentFormat, '%'),
     },
   ]
 

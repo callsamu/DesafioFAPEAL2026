@@ -37,9 +37,9 @@ export interface Page<T> {
 }
 
 export interface Indicators {
-  matriculas: number | null
-  ofertasEscolas: number | null
-  taxaMediaDeAprovacao: number | null
+  enrollments: number | null
+  offers: number | null
+  averageApproval: number | null
 }
 
 export interface SeriesData {
