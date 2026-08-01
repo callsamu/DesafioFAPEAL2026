@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { EXPECTED_HEADER, validateHeader } from '../validation/headers';
 import { RowSchema } from '../validation/rows';
 import { rowToRecord } from '../record';
-import { DataQuerySchema } from '../validation/queries';
+import { DataQuerySchema, FiltersSchema } from '../validation/queries';
 
 
 describe('validateHeader', () => {
@@ -103,5 +103,58 @@ describe('DataQuerySchema', () => {
         "deve ser 'Estadual','Municipal','Federal','Privada','Pública','Total','Não se aplica'"
       );
     }
+  });
+});
+
+describe('FiltersSchema', () => {
+  it('rejects performance rates with incompatible levels', () => {
+    const result = FiltersSchema.safeParse({
+      variable: 'Taxa de Aprovação',
+      level: 'Educação Infantil',
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toEqual(['level']);
+      expect(result.error.issues[0].message).toBe(
+        '"Taxa de Aprovação" não existe para o nível "Educação Infantil"'
+      );
+    }
+  });
+
+  it('rejects demographic variables with non-demographic network', () => {
+    const result = FiltersSchema.safeParse({
+      variable: 'Pessoas Alfabetizadas',
+      network: 'Municipal',
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toEqual(['network']);
+      expect(result.error.issues[0].message).toBe(
+        'variável "Pessoas Alfabetizadas" exige rede de ensino "Não se aplica"'
+      );
+    }
+  });
+
+  it('rejects "Não se aplica" network for non-demographic variables', () => {
+    const result = FiltersSchema.safeParse({
+      variable: 'Matrícula',
+      network: 'Não se aplica',
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error.issues[0].path).toEqual(['network']);
+    }
+  });
+
+  it('accepts compatible filter combinations', () => {
+    const result = FiltersSchema.safeParse({
+      variable: 'Taxa de Aprovação',
+      level: 'Ensino Fundamental',
+    });
+
+    expect(result.success).toBe(true);
   });
 });
