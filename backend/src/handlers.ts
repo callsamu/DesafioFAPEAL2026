@@ -128,3 +128,16 @@ export function series(repo: MetricsRepository): Handler {
         success(res, result);
     };
 }
+
+export function breakdown(repo: MetricsRepository): Handler {
+    return async (req, res) => {
+        const parsed = FiltersSchema.safeParse(req.query);
+        if (!parsed.success) {
+            error(res, formatZodError(parsed.error));
+            return;
+        }
+
+        const result = await repo.breakdown(parsed.data);
+        success(res, result);
+    };
+}

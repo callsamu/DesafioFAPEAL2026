@@ -17,6 +17,7 @@ export function createApp(opts: AppOpts) {
     app.get('/api/data', handlers.listData(repo));
     app.get('/api/indicators', handlers.indicators(repo));
     app.get('/api/series', handlers.series(repo));
+    app.get('/api/breakdown', handlers.breakdown(repo));
 
     return app;
 }

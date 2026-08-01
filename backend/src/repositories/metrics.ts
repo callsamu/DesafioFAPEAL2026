@@ -27,6 +27,9 @@ export interface FilterListing {
   variables: string[];
 }
 
+export type Breakdown = 
+  Pick<typeof metricsTable.$inferInsert, 'schoolNetwork' | 'value'>
+
 export interface Indicators {
   matriculas: number | null;
   ofertasEscolas: number | null;
@@ -47,12 +50,13 @@ export interface MetricsRepository {
   listData(filters: Filters, page: EmptyPage): Promise<Page<Omit<MetricsRecord, 'batchId'>>>;
   indicators(filters: Filters): Promise<Indicators>;
   series(filters: Filters): Promise<SeriesData[]>;
+  breakdown(filters: Filters): Promise<Breakdown[]>;
 }
 
 export class DrizzleMetricsRepository implements MetricsRepository {
   constructor(private db: NodePgDatabase) {}
 
-  private filterConditions(table: AnyPgTable, f: Filters) {
+  private filterConditions(table: AnyPgTable, f: Filters, defaultNetwork: string | null = 'Total') {
     const t = table as typeof metricsTable;
     const conditions = [];
 
@@ -80,7 +84,9 @@ export class DrizzleMetricsRepository implements MetricsRepository {
       conditions.push(eq(t.variable, f.variable))
     }
 
-    conditions.push(eq(t.schoolNetwork, f.network ?? "Total"));
+    if (defaultNetwork !== null) {
+      conditions.push(eq(t.schoolNetwork, f.network ?? defaultNetwork));
+    }
 
     return conditions;
   }
@@ -249,5 +255,18 @@ export class DrizzleMetricsRepository implements MetricsRepository {
     `);
 
     return rows as unknown as SeriesData[];
+  }
+
+  async breakdown({ network: _, ...f }: VariableFilters): Promise<Breakdown[]> {
+    const result = await this.db
+      .select({
+        schoolNetwork: metricsTable.schoolNetwork,
+        value: sql<number>`SUM(${metricsTable.value})`,
+      })
+      .from(metricsTable)
+      .where(and(...this.filterConditions(metricsTable, f, null)))
+      .groupBy(metricsTable.schoolNetwork);
+
+    return result;
   }
 }
