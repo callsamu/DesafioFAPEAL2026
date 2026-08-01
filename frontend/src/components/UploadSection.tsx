@@ -23,11 +23,13 @@ export function UploadSection() {
       toast.success(
         `Importados ${data.imported} registros${rejected ? `, ${data.rejected} rejeitados` : ''}`,
       )
-      queryClient.invalidateQueries({ queryKey: ['filters'] })
-      queryClient.invalidateQueries({ queryKey: ['indicators'] })
-      queryClient.invalidateQueries({ queryKey: ['series'] })
-      queryClient.invalidateQueries({ queryKey: ['breakdown'] })
-      queryClient.invalidateQueries({ queryKey: ['data'] })
+      await queryClient.invalidateQueries({ queryKey: ['filters'], refetchType: 'all' })
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['indicators'], refetchType: 'all' }),
+        queryClient.invalidateQueries({ queryKey: ['series'], refetchType: 'all' }),
+        queryClient.invalidateQueries({ queryKey: ['breakdown'], refetchType: 'all' }),
+        queryClient.invalidateQueries({ queryKey: ['data'], refetchType: 'all' }),
+      ])
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Falha no upload')
     } finally {
