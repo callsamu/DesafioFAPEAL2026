@@ -1,0 +1,16 @@
+services:
+  db:
+    ports:
+      - "5433:5432"
+    volumes:
+      - type: tmpfs
+        target: /var/lib/postgresql/data
+
+  backend:
+    build:
+      target: development
+    command: npm run dev
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./backend/src:/app/src

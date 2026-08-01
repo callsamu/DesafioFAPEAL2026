@@ -4,6 +4,7 @@ export function getDbUrl(): string {
     DB_PASSWORD,
     DB_USER,
     DB_PORT,
+    DB_HOST,
   } = process.env;
 
 
@@ -11,5 +12,6 @@ export function getDbUrl(): string {
     throw new Error("Undefined database environment variables");
   }
 
-  return `postgres://${DB_USER}:${DB_PASSWORD}@localhost:${DB_PORT}/${DB_NAME}`;
+  const host = DB_HOST ?? 'localhost';
+  return `postgres://${DB_USER}:${DB_PASSWORD}@${host}:${DB_PORT}/${DB_NAME}`;
 }
