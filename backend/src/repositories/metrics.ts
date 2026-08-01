@@ -198,6 +198,7 @@ export class DrizzleMetricsRepository implements MetricsRepository {
           network: "Total",
           startYear: f.startYear,
           endYear: f.endYear,
+          year: f.year,
           level: f.level,
         })),
       );
