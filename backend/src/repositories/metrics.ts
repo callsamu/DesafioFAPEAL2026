@@ -233,7 +233,7 @@ export class DrizzleMetricsRepository implements MetricsRepository {
     return result;
   }
 
-  async series({ year, startYear, endYear, ...f} : VariableFilters): Promise<SeriesData[]> {
+  async series({ year, startYear, endYear, municipality, ...f }: VariableFilters): Promise<SeriesData[]> {
     const { rows } = await this.db.execute(sql<SeriesData>`
       WITH 
       year_range AS (
@@ -249,9 +249,9 @@ export class DrizzleMetricsRepository implements MetricsRepository {
       LEFT JOIN ${metricsTable} m
       ON m.year = y.year
       AND m.variable = ${f.variable}
-      AND municipality_name = ${f.municipality}
-      AND school_network = ${f.network ?? 'Total'}
-      AND education_level = ${f.level ?? 'Ensino Fundamental'} 
+      AND m.school_network = ${f.network ?? 'Total'}
+      AND m.education_level = ${f.level ?? 'Ensino Fundamental'}
+      ${municipality ? sql`AND m.municipality_name = ${municipality}` : sql``}
     `);
 
     return rows as unknown as SeriesData[];

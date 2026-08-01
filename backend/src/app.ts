@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as handlers from './handlers';
 import { DrizzleMetricsRepository } from './repositories/metrics';
@@ -9,6 +10,8 @@ interface AppOpts {
 export function createApp(opts: AppOpts) {
     const app = express();
     const repo = new DrizzleMetricsRepository(opts.db);
+
+    app.use(cors());
 
     app.get('/api/healthcheck', handlers.healthcheck);
     app.post('/api/upload', handlers.upload(repo));
