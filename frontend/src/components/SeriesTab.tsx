@@ -47,8 +47,9 @@ export function SeriesTab() {
                 dataKey="value"
                 stroke="var(--primary)"
                 strokeWidth={2}
-                dot={false}
-                connectNulls={false}
+                dot={{ r: 3, strokeWidth: 0, fill: 'var(--primary)' }}
+                activeDot={{ r: 5 }}
+                connectNulls={true}
               />
             </LineChart>
           </ResponsiveContainer>
