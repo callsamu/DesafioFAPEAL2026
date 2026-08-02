@@ -244,14 +244,19 @@ export class DrizzleMetricsRepository implements MetricsRepository {
         SELECT generate_series(a, b, 1) AS year
         FROM year_range 
       )
-      SELECT y.year, value
+      SELECT
+        y.year, 
+        ${f.variable.startsWith('Taxa') ? sql`AVG(value)` : sql`SUM(value)`}
+        AS value
       FROM years y
       LEFT JOIN ${metricsTable} m
       ON m.year = y.year
       AND m.variable = ${f.variable}
       AND m.school_network = ${f.network ?? 'Total'}
-      AND m.education_level = ${f.level ?? 'Ensino Fundamental'}
+      AND m.education_level = ${f.level}
       ${municipality ? sql`AND m.municipality_name = ${municipality}` : sql``}
+      GROUP BY y.year
+      ORDER BY y.year ASC
     `);
 
     return rows as unknown as SeriesData[];
@@ -261,7 +266,9 @@ export class DrizzleMetricsRepository implements MetricsRepository {
     const result = await this.db
       .select({
         schoolNetwork: metricsTable.schoolNetwork,
-        value: sql<number>`SUM(${metricsTable.value})`,
+        value: f.variable.startsWith('Taxa') ? 
+          sql<number>`AVG(${metricsTable.value})` :
+          sql<number>`SUM(${metricsTable.value})`
       })
       .from(metricsTable)
       .where(and(...this.filterConditions(metricsTable, f, null)))
