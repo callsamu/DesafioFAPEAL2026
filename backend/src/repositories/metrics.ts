@@ -120,8 +120,8 @@ export class DrizzleMetricsRepository implements MetricsRepository {
       SELECT json_build_object(
         'municipalities', json_agg(DISTINCT municipality_name),
         'years', json_agg(DISTINCT year),
-        'networks', json_agg(DISTINCT school_network),
-        'levels', json_agg(DISTINCT education_level),
+        'networks', json_agg(DISTINCT school_network) FILTER (WHERE school_network <> 'Não se aplica'),
+        'levels', json_agg(DISTINCT education_level) FILTER (WHERE education_level <> 'Pessoas de 15 anos ou mais de idade'),
         'variables', json_agg(DISTINCT variable)
       ) as filters 
       FROM ${metricsTable}
@@ -253,7 +253,7 @@ export class DrizzleMetricsRepository implements MetricsRepository {
       ON m.year = y.year
       AND m.variable = ${f.variable}
       AND m.school_network = ${f.network ?? 'Total'}
-      AND m.education_level = ${f.level}
+      AND m.education_level = ${f.level ?? 'Ensino Fundamental'}
       ${municipality ? sql`AND m.municipality_name = ${municipality}` : sql``}
       GROUP BY y.year
       ORDER BY y.year ASC

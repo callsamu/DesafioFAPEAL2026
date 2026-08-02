@@ -17,6 +17,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { DEFAULT_FILTERS, useDashboard } from '@/context/DashboardContext'
+import { DEMOGRAPHIC_VARIABLES } from '@/lib/utils'
 import type { Filters } from '@/lib/api'
 
 const ALL = '__all__'
@@ -33,6 +34,28 @@ export function FiltersPanel() {
 
   const setSelect = (key: keyof Filters) => (value: string) =>
     set({ [key]: isAll(value) ? undefined : value })
+
+  const isDemographic: boolean | null = filtersLoading
+    ? null
+    : !!(draft.variable && DEMOGRAPHIC_VARIABLES.includes(draft.variable))
+
+  const setVariable = (value: string) => {
+    const variable = isAll(value) ? undefined : value
+    const wasDemographic = !!(draft.variable && DEMOGRAPHIC_VARIABLES.includes(draft.variable))
+    const nextDemographic = !!(variable && DEMOGRAPHIC_VARIABLES.includes(variable))
+
+    if (nextDemographic) {
+      set({
+        variable,
+        network: 'Não se aplica',
+        level: 'Pessoas de 15 anos ou mais de idade',
+      })
+    } else if (wasDemographic) {
+      set({ variable, network: filters['network']?.[0], level: filters['level']?.[0] })
+    } else {
+      set({ variable })
+    }
+  }
 
   const options = (key: keyof typeof filterOptions): string[] =>
     (filterOptions[key] ?? []) as string[]
@@ -93,41 +116,55 @@ export function FiltersPanel() {
 
         <div className="space-y-2">
           <Label>Rede</Label>
-          <Select value={draft.network} onValueChange={setSelect('network')} disabled={filtersLoading}>
-            <SelectTrigger>
-              <SelectValue placeholder="Rede" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Todas</SelectItem>
-              {options('networks').map((n) => (
-                <SelectItem key={n} value={n}>
-                  {n}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {isDemographic === true ? (
+            <div className="flex h-10 items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
+              Não se aplica
+              <span className="ml-1.5 text-xs text-muted-foreground/70">(fixado)</span>
+            </div>
+          ) : (
+            <Select value={draft.network ?? ALL} onValueChange={setSelect('network')} disabled={filtersLoading}>
+              <SelectTrigger>
+                <SelectValue placeholder="Rede" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Todas</SelectItem>
+                {options('networks').map((n) => (
+                  <SelectItem key={n} value={n}>
+                    {n}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label>Etapa</Label>
-          <Select value={draft.level} onValueChange={setSelect('level')} disabled={filtersLoading}>
-            <SelectTrigger>
-              <SelectValue placeholder="Etapa" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={ALL}>Todas</SelectItem>
-              {options('levels').map((l) => (
-                <SelectItem key={l} value={l}>
-                  {l}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          {isDemographic === true ? (
+            <div className="flex h-10 items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
+              Pessoas de 15 anos ou mais de idade
+              <span className="ml-1.5 text-xs text-muted-foreground/70">(fixado)</span>
+            </div>
+          ) : (
+            <Select value={draft.level ?? ALL} onValueChange={setSelect('level')} disabled={filtersLoading}>
+              <SelectTrigger>
+                <SelectValue placeholder="Etapa" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>Todas</SelectItem>
+                {options('levels').map((l) => (
+                  <SelectItem key={l} value={l}>
+                    {l}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
         </div>
 
         <div className="space-y-2">
           <Label>Variável</Label>
-          <Select value={draft.variable} onValueChange={setSelect('variable')} disabled={filtersLoading}>
+          <Select value={draft.variable ?? ALL} onValueChange={setVariable} disabled={filtersLoading}>
             <SelectTrigger>
               <SelectValue placeholder="Variável" />
             </SelectTrigger>
