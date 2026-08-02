@@ -8,6 +8,7 @@ import { UploadSection } from '@/components/UploadSection'
 import { IndicatorsCards } from '@/components/IndicatorsCards'
 import { FiltersPanel } from '@/components/FiltersPanel'
 import { SeriesTab } from '@/components/SeriesTab'
+import { RankingTab } from '@/components/RankingTab'
 import { BreakdownTab } from '@/components/BreakdownTab'
 import { DataTable } from '@/components/DataTable'
 
@@ -33,10 +34,14 @@ function Dashboard() {
       <Tabs defaultValue="series">
         <TabsList>
           <TabsTrigger value="series">Série</TabsTrigger>
+          <TabsTrigger value="ranking">Ranking</TabsTrigger>
           <TabsTrigger value="breakdown">Rede</TabsTrigger>
         </TabsList>
         <TabsContent value="series">
           <SeriesTab />
+        </TabsContent>
+        <TabsContent value="ranking">
+          <RankingTab />
         </TabsContent>
         <TabsContent value="breakdown">
           <BreakdownTab />

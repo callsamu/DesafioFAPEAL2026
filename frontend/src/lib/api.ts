@@ -52,6 +52,11 @@ export interface BreakdownItem {
   value: number
 }
 
+export interface MunicipalityData {
+  municipalityName: string
+  value: number | null
+}
+
 export interface UploadResult {
   read: number
   imported: number
@@ -106,6 +111,9 @@ export const api = {
 
   getBreakdown: (filters: Filters) =>
     request<BreakdownItem[]>(`/breakdown${toQuery(filters)}`),
+
+  getRanking: (filters: Filters, limit = 10) =>
+    request<MunicipalityData[]>(`/ranking${toQuery({ ...filters, limit })}`),
 
   upload: async (file: File): Promise<UploadResult> => {
     const fd = new FormData()

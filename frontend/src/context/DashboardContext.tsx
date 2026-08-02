@@ -7,6 +7,7 @@ import {
   type Filters,
   type Indicators,
   type MetricsRecord,
+  type MunicipalityData,
   type Page,
   type SeriesData,
 } from '@/lib/api'
@@ -32,6 +33,8 @@ interface DashboardState {
   seriesLoading: boolean
   breakdown: BreakdownItem[] | undefined
   breakdownLoading: boolean
+  ranking: MunicipalityData[] | undefined
+  rankingLoading: boolean
   dataPage: Page<MetricsRecord> | undefined
   dataLoading: boolean
   page: number
@@ -88,19 +91,29 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     queryFn: () => api.getBreakdown(filters),
   })
 
+  const rankingQuery = useQuery({
+    queryKey: ['ranking', filters],
+    queryFn: () => api.getRanking(filters),
+  })
+
   const dataQuery = useQuery({
     queryKey: ['data', filters, page],
     queryFn: () => api.getData(filters, page, PAGE_SIZE),
   })
 
   const currentError =
-    [indicatorsQuery.error, seriesQuery.error, breakdownQuery.error, dataQuery.error].find(
-      Boolean,
-    )?.message ?? null
+    [
+      indicatorsQuery.error,
+      seriesQuery.error,
+      breakdownQuery.error,
+      rankingQuery.error,
+      dataQuery.error,
+    ].find(Boolean)?.message ?? null
   const allSucceeded =
     indicatorsQuery.isSuccess &&
     seriesQuery.isSuccess &&
     breakdownQuery.isSuccess &&
+    rankingQuery.isSuccess &&
     dataQuery.isSuccess
 
   if (currentError && lastGoodFilters !== filters) {
@@ -116,11 +129,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const lastIndicators = useLastData(indicatorsQuery.data)
   const lastSeries = useLastData(seriesQuery.data)
   const lastBreakdown = useLastData(breakdownQuery.data)
+  const lastRanking = useLastData(rankingQuery.data)
   const lastDataPage = useLastData(dataQuery.data)
 
   const indicators = indicatorsQuery.error ? lastIndicators : indicatorsQuery.data
   const series = seriesQuery.error ? lastSeries : seriesQuery.data
   const breakdown = breakdownQuery.error ? lastBreakdown : breakdownQuery.data
+  const ranking = rankingQuery.error ? lastRanking : rankingQuery.data
   const dataPage = dataQuery.error ? lastDataPage : dataQuery.data
 
   const filterOptions: FilterListing = {
@@ -145,6 +160,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         seriesLoading: seriesQuery.isLoading,
         breakdown,
         breakdownLoading: breakdownQuery.isLoading,
+        ranking,
+        rankingLoading: rankingQuery.isLoading,
         dataPage,
         dataLoading: dataQuery.isLoading,
         page,

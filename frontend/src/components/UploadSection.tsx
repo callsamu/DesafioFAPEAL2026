@@ -28,6 +28,7 @@ export function UploadSection() {
         queryClient.invalidateQueries({ queryKey: ['indicators'], refetchType: 'all' }),
         queryClient.invalidateQueries({ queryKey: ['series'], refetchType: 'all' }),
         queryClient.invalidateQueries({ queryKey: ['breakdown'], refetchType: 'all' }),
+        queryClient.invalidateQueries({ queryKey: ['ranking'], refetchType: 'all' }),
         queryClient.invalidateQueries({ queryKey: ['data'], refetchType: 'all' }),
       ])
     } catch (err) {
