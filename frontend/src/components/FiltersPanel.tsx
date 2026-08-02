@@ -29,6 +29,11 @@ function isAll(value: string) {
 export function FiltersPanel() {
   const { filters, updateFilters, resetFilters, filterOptions, filtersLoading } = useDashboard()
   const [draft, setDraft] = useState<Filters>(filters)
+  const [syncedFilters, setSyncedFilters] = useState(filters)
+  if (filters !== syncedFilters) {
+    setSyncedFilters(filters)
+    setDraft(filters)
+  }
 
   const set = (patch: Partial<Filters>) => setDraft((d) => ({ ...d, ...patch }))
 

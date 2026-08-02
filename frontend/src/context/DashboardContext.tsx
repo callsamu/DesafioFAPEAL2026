@@ -40,16 +40,28 @@ interface DashboardState {
 
 const DashboardContext = createContext<DashboardState | null>(null)
 
+function useLastData<T>(queryData: T | undefined): T | undefined {
+  const [last, setLast] = useState<T | undefined>(undefined)
+  if (queryData !== undefined && queryData !== last) {
+    setLast(queryData)
+  }
+  return last
+}
+
 export function DashboardProvider({ children }: { children: ReactNode }) {
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS)
+  const [lastGoodFilters, setLastGoodFilters] = useState<Filters>(DEFAULT_FILTERS)
+  const [error, setError] = useState<string | null>(null)
   const [page, setPage] = useState(1)
 
   const updateFilters = (patch: Partial<Filters>) => {
+    setError(null)
     setFilters((current) => ({ ...current, ...patch }))
     setPage(1)
   }
 
   const resetFilters = () => {
+    setError(null)
     setFilters(DEFAULT_FILTERS)
     setPage(1)
   }
@@ -80,10 +92,35 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     queryFn: () => api.getData(filters, page, PAGE_SIZE),
   })
 
-  const error =
+  const currentError =
     [indicatorsQuery.error, seriesQuery.error, breakdownQuery.error, dataQuery.error].find(
       Boolean,
     )?.message ?? null
+  const allSucceeded =
+    indicatorsQuery.isSuccess &&
+    seriesQuery.isSuccess &&
+    breakdownQuery.isSuccess &&
+    dataQuery.isSuccess
+
+  if (currentError && lastGoodFilters !== filters) {
+    setFilters(lastGoodFilters)
+  }
+  if (currentError && error !== currentError) {
+    setError(currentError)
+  }
+  if (allSucceeded && lastGoodFilters !== filters) {
+    setLastGoodFilters(filters)
+  }
+
+  const lastIndicators = useLastData(indicatorsQuery.data)
+  const lastSeries = useLastData(seriesQuery.data)
+  const lastBreakdown = useLastData(breakdownQuery.data)
+  const lastDataPage = useLastData(dataQuery.data)
+
+  const indicators = indicatorsQuery.error ? lastIndicators : indicatorsQuery.data
+  const series = seriesQuery.error ? lastSeries : seriesQuery.data
+  const breakdown = breakdownQuery.error ? lastBreakdown : breakdownQuery.data
+  const dataPage = dataQuery.error ? lastDataPage : dataQuery.data
 
   const filterOptions: FilterListing = {
     municipalities: filterOptionsQuery.data?.municipalities ?? [],
@@ -101,13 +138,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         resetFilters,
         filterOptions,
         filtersLoading: filterOptionsQuery.isLoading,
-        indicators: indicatorsQuery.data,
+        indicators,
         indicatorsLoading: indicatorsQuery.isLoading,
-        series: seriesQuery.data,
+        series,
         seriesLoading: seriesQuery.isLoading,
-        breakdown: breakdownQuery.data,
+        breakdown,
         breakdownLoading: breakdownQuery.isLoading,
-        dataPage: dataQuery.data,
+        dataPage,
         dataLoading: dataQuery.isLoading,
         page,
         setPage,

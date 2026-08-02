@@ -61,9 +61,15 @@ export interface UploadResult {
 
 type Envelope<T> = { status: 'success'; data: T } | { status: 'error'; error: unknown }
 
+function cleanMessage(message: string): string {
+  const match = message.match(/^'(?:.*?)':\s*(.*)$/)
+  return match ? match[1] : message
+}
+
 function messageFromError(error: unknown): string {
-  if (Array.isArray(error)) return error.join('; ')
-  return typeof error === 'string' ? error : 'Erro desconhecido'
+  if (Array.isArray(error)) return error.map(cleanMessage).join('; ')
+  if (typeof error === 'string') return cleanMessage(error)
+  return 'Erro desconhecido'
 }
 
 function toQuery(params: object): string {
