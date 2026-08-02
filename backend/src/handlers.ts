@@ -61,8 +61,7 @@ export function upload(repo: MetricsRepository): Handler {
                 success(res, {
                     read: result.read,
                     imported: result.imported,
-                    rejected: result.rejected,
-                    errors: Object.fromEntries(result.errors),
+                    rejectedRows: result.rejectedRows,
                 });
             } catch (err) {
                 if (!res.headersSent) {

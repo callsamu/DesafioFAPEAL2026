@@ -58,7 +58,13 @@ describe('Parser', () => {
         const results = await parser.parse(stream);
         expect(results.read).toBe(13);
         expect(results.imported).toBe(1);
-        expect(results.rejected).toBe(12);
+        expect(results.rejectedRows.length).toBe(12);
+
+        expect(results.rejectedRows.map(r => r.line)).toEqual([2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]);
+        for (const row of results.rejectedRows) {
+            expect(row.errors.length).toBeGreaterThan(0);
+            expect(row.raw).toHaveProperty('co_mun');
+        }
 
         expect(batchMock).toHaveBeenCalledTimes(1);
         expect(batchMock).toHaveBeenCalledWith([rowToRecord(validResult.data!)]);

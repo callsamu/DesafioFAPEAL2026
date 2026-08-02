@@ -7,11 +7,16 @@ import { MetricsRecord, rowToRecord } from "./record";
 import { formatZodError } from "./validation/errors";
 import { assert } from "node:console";
 
+export interface RejectedRow {
+    line: number;
+    raw: Record<string, string>;
+    errors: string[];
+}
+
 export interface ParseResult {
     read: number;
     imported: number;
-    rejected: number;
-    errors: Map<number, string[]>;
+    rejectedRows: RejectedRow[];
 }
 
 export interface ParserArgs {
@@ -23,8 +28,7 @@ export class CSVParseError extends Error {}
 
 export class CSVParser {
     index = 0;
-    rejected = 0;
-    errors = new Map<number, string[]>;
+    rejectedRows: RejectedRow[] = [];
 
     readonly batchSize: number;
 
@@ -40,10 +44,8 @@ export class CSVParser {
 
     async parse(stream: Readable): Promise<ParseResult> {
         this.index = 0;
-        this.rejected = 0;
+        this.rejectedRows = [];
         this.pendingBatches = [];
-        this.errors = this.errors.size > 0 ? 
-            new Map() : this.errors;
 
         const result = await new Promise<ParseResult>((resolve, reject) => {
             const parser = csv({
@@ -82,8 +84,11 @@ export class CSVParser {
 
         const { data: row, success, error } = RowSchema.safeParse(raw);
         if (!success) {
-            this.rejected += 1;
-            this.errors.set(this.index, formatZodError(error));
+            this.rejectedRows.push({
+                line: this.index,
+                raw: raw as Record<string, string>,
+                errors: formatZodError(error),
+            });
             return;
         }
 
@@ -101,9 +106,8 @@ export class CSVParser {
 
         return {
             read: this.index,
-            imported: this.index - this.rejected,
-            rejected: this.rejected,
-            errors: this.errors,
+            imported: this.index - this.rejectedRows.length,
+            rejectedRows: this.rejectedRows,
         };
     }
 
