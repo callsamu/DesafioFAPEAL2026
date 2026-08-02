@@ -16,9 +16,12 @@ import {
 } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useDashboard } from '@/context/DashboardContext'
+import { formatMetricValue, isRateVariable, showsAverageNote } from '@/lib/utils'
 
 export function SeriesTab() {
   const { series, seriesLoading, filters } = useDashboard()
+  const isRate = isRateVariable(filters.variable)
+  const averageNote = showsAverageNote(filters.municipality)
 
   return (
     <Card>
@@ -26,6 +29,7 @@ export function SeriesTab() {
         <CardTitle className="text-lg">Série temporal</CardTitle>
         <CardDescription>
           {filters.variable ?? 'Variável'} por ano
+          {averageNote ? ' · média entre municípios' : ''}
         </CardDescription>
       </CardHeader>
       <CardContent className="h-72">
@@ -40,8 +44,13 @@ export function SeriesTab() {
             <LineChart data={series} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} />
               <XAxis dataKey="year" />
-              <YAxis width={56} />
-              <Tooltip />
+              <YAxis
+                width={56}
+                tickFormatter={(value: number) => (isRate ? `${value}%` : String(value))}
+              />
+              <Tooltip
+                formatter={(value) => formatMetricValue(Number(value), isRate)}
+              />
               <Line
                 type="monotone"
                 dataKey="value"

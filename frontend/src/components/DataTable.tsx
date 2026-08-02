@@ -16,19 +16,22 @@ import {
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useDashboard } from '@/context/DashboardContext'
-
-const valueFormat = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
+import { formatMetricValue, isRateVariable, showsAverageNote } from '@/lib/utils'
 
 export function DataTable() {
-  const { dataPage, dataLoading, page, setPage } = useDashboard()
+  const { dataPage, dataLoading, page, setPage, filters } = useDashboard()
   const rows = dataPage?.data ?? []
   const hasNext = (dataPage?.data.length ?? 0) >= (dataPage?.size ?? 0)
+  const averageNote = showsAverageNote(filters.municipality)
 
   return (
     <Card>
       <CardHeader>
         <CardTitle className="text-lg">Registros</CardTitle>
-        <CardDescription>Dados brutos filtrados</CardDescription>
+        <CardDescription>
+          Dados brutos filtrados
+          {averageNote ? ' · média entre municípios' : ''}
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {dataLoading ? (
@@ -64,7 +67,7 @@ export function DataTable() {
                   <TableCell>{row.schoolNetwork}</TableCell>
                   <TableCell>{row.educationLevel}</TableCell>
                   <TableCell className="text-right tabular-nums">
-                    {valueFormat.format(row.value)}
+                    {formatMetricValue(row.value, isRateVariable(row.variable))}
                   </TableCell>
                 </TableRow>
               ))}

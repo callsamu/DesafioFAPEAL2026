@@ -93,7 +93,7 @@ export function FiltersPanel() {
 
         <div className="space-y-2">
           <Label>Rede</Label>
-          <Select value={draft.network ?? ALL} onValueChange={setSelect('network')} disabled={filtersLoading}>
+          <Select value={draft.network} onValueChange={setSelect('network')} disabled={filtersLoading}>
             <SelectTrigger>
               <SelectValue placeholder="Rede" />
             </SelectTrigger>
@@ -110,7 +110,7 @@ export function FiltersPanel() {
 
         <div className="space-y-2">
           <Label>Etapa</Label>
-          <Select value={draft.level ?? ALL} onValueChange={setSelect('level')} disabled={filtersLoading}>
+          <Select value={draft.level} onValueChange={setSelect('level')} disabled={filtersLoading}>
             <SelectTrigger>
               <SelectValue placeholder="Etapa" />
             </SelectTrigger>
@@ -127,7 +127,7 @@ export function FiltersPanel() {
 
         <div className="space-y-2">
           <Label>Variável</Label>
-          <Select value={draft.variable ?? ALL} onValueChange={setSelect('variable')} disabled={filtersLoading}>
+          <Select value={draft.variable} onValueChange={setSelect('variable')} disabled={filtersLoading}>
             <SelectTrigger>
               <SelectValue placeholder="Variável" />
             </SelectTrigger>

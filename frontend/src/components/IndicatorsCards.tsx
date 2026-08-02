@@ -7,6 +7,7 @@ import {
 } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useDashboard } from '@/context/DashboardContext'
+import { showsAverageNote } from '@/lib/utils'
 
 const numberFormat = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 })
 const percentFormat = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 2 })
@@ -17,7 +18,8 @@ function formatValue(value: number | null | undefined, format: Intl.NumberFormat
 }
 
 export function IndicatorsCards() {
-  const { indicators, indicatorsLoading } = useDashboard()
+  const { indicators, indicatorsLoading, filters } = useDashboard()
+  const averageNote = showsAverageNote(filters.municipality)
 
   const cards = [
     {
@@ -32,7 +34,9 @@ export function IndicatorsCards() {
     },
     {
       title: 'Taxa média de aprovação',
-      description: 'Média ponderada',
+      description: averageNote
+        ? 'Média ponderada entre os municípios selecionados'
+        : 'Média ponderada',
       value: formatValue(indicators?.averageApproval, percentFormat, '%'),
     },
   ]
