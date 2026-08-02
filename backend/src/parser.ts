@@ -16,7 +16,7 @@ export interface ParseResult {
 
 export interface ParserArgs {
     batchSize: number;
-    onBatch(batch: MetricsRecord[]): void;
+    onBatch(batch: MetricsRecord[]): void | Promise<void>;
 }
 
 export class CSVParseError extends Error {}
@@ -29,6 +29,7 @@ export class CSVParser {
     readonly batchSize: number;
 
     private records: MetricsRecord[] = [];
+    private pendingBatches: Promise<void>[] = [];
 
     onBatch: ParserArgs["onBatch"];
 
@@ -40,10 +41,11 @@ export class CSVParser {
     async parse(stream: Readable): Promise<ParseResult> {
         this.index = 0;
         this.rejected = 0;
+        this.pendingBatches = [];
         this.errors = this.errors.size > 0 ? 
             new Map() : this.errors;
 
-        return new Promise<ParseResult>((resolve, reject) => {
+        const result = await new Promise<ParseResult>((resolve, reject) => {
             const parser = csv({
                 skipComments: true
             });
@@ -67,7 +69,10 @@ export class CSVParser {
                     }
                     resolve(this.onEnd());
                 });
-        })
+        });
+
+        await Promise.all(this.pendingBatches);
+        return result;
     }
 
     onData(raw: unknown) {
@@ -103,7 +108,10 @@ export class CSVParser {
     }
 
     sendBatch() {
-        this.onBatch(this.records);
+        const result = this.onBatch(this.records);
         this.records = [];
+        if (result && typeof result.then === 'function') {
+            this.pendingBatches.push(result);
+        }
     }
 }
