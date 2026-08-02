@@ -56,7 +56,7 @@ export function FiltersPanel() {
         level: 'Pessoas de 15 anos ou mais de idade',
       })
     } else if (wasDemographic) {
-      set({ variable, network: filters['network']?.[0], level: filters['level']?.[0] })
+      set({ variable, network: DEFAULT_FILTERS.network, level: DEFAULT_FILTERS.level })
     } else {
       set({ variable })
     }
@@ -127,12 +127,11 @@ export function FiltersPanel() {
               <span className="ml-1.5 text-xs text-muted-foreground/70">(fixado)</span>
             </div>
           ) : (
-            <Select value={draft.network ?? ALL} onValueChange={setSelect('network')} disabled={filtersLoading}>
+            <Select value={draft.network} onValueChange={setSelect('network')} disabled={filtersLoading}>
               <SelectTrigger>
                 <SelectValue placeholder="Rede" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>Todas</SelectItem>
                 {options('networks').map((n) => (
                   <SelectItem key={n} value={n}>
                     {n}
@@ -151,12 +150,11 @@ export function FiltersPanel() {
               <span className="ml-1.5 text-xs text-muted-foreground/70">(fixado)</span>
             </div>
           ) : (
-            <Select value={draft.level ?? ALL} onValueChange={setSelect('level')} disabled={filtersLoading}>
+            <Select value={draft.level} onValueChange={setSelect('level')} disabled={filtersLoading}>
               <SelectTrigger>
                 <SelectValue placeholder="Etapa" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>Todas</SelectItem>
                 {options('levels').map((l) => (
                   <SelectItem key={l} value={l}>
                     {l}
@@ -169,12 +167,11 @@ export function FiltersPanel() {
 
         <div className="space-y-2">
           <Label>Variável</Label>
-          <Select value={draft.variable ?? ALL} onValueChange={setVariable} disabled={filtersLoading}>
+          <Select value={draft.variable} onValueChange={setVariable} disabled={filtersLoading}>
             <SelectTrigger>
               <SelectValue placeholder="Variável" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>Todas</SelectItem>
               {options('variables').map((v) => (
                 <SelectItem key={v} value={v}>
                   {v}

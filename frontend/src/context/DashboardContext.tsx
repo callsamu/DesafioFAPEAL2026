@@ -14,6 +14,7 @@ import {
 export const DEFAULT_FILTERS: Filters = {
   variable: 'Matrícula',
   municipality: 'Maceió',
+  network: 'Total',
   level: 'Ensino Fundamental',
 }
 
