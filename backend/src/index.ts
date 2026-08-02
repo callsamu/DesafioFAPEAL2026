@@ -8,10 +8,11 @@ configDotenv();
 
 const url = getDbUrl();
 const db = drizzle(url);
+const origin = process.env.origin ?? '*';
 
 const port = Number(process.env.PORT ?? 3000);
 
 migrate(db, { migrationsFolder: './migrations' }).then(() => {
-  const app = createApp({ db });
+  const app = createApp({ db, origin });
   app.listen(port);
 });

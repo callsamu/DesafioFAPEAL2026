@@ -6,6 +6,7 @@ import { DrizzleMetricsRepository } from './repositories/metrics';
 
 interface AppOpts {
     db: NodePgDatabase;
+    origin: string;
 }
 export function createApp(opts: AppOpts) {
     const app = express();
