@@ -38,7 +38,7 @@ export interface Indicators {
 
 
 export interface MunicipalityData {
-  municipalityName: number;
+  municipalityName: string;
   value: number | null;
 }
 
@@ -96,6 +96,14 @@ export class DrizzleMetricsRepository implements MetricsRepository {
     }
 
     return conditions;
+  }
+
+  private variableAggregate(variable: string) {
+    const v = metricsTable.value;
+
+    return variable.startsWith('Taxa') ?
+      sql<number>`AVG(${v})` :
+      sql<number>`SUM(${v})`;
   }
 
   async createBatch(): Promise<BatchResult> {
