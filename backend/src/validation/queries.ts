@@ -91,3 +91,10 @@ export type Pagination = z.infer<typeof PaginationSchema>;
 export const DataQuerySchema = FiltersSchema.extend(PaginationSchema.shape);
 
 export type DataQuery = z.infer<typeof DataQuerySchema>;
+
+export const RankingQuerySchema = z.object({
+  ...VariableFiltersSchema.shape,
+  limit: z.coerce.number().int().positive().default(10)
+});
+
+export type RankingQuery = z.infer<typeof RankingQuerySchema>;

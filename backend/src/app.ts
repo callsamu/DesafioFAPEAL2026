@@ -21,6 +21,7 @@ export function createApp(opts: AppOpts) {
     app.get('/api/indicators', handlers.indicators(repo));
     app.get('/api/series', handlers.series(repo));
     app.get('/api/breakdown', handlers.breakdown(repo));
+    app.get('/api/ranking', handlers.ranking(repo));
 
     return app;
 }

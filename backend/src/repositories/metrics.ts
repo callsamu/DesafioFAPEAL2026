@@ -1,11 +1,10 @@
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { and, eq, gte, lte, max, min, sql, sum, type Query } from 'drizzle-orm';
+import { and, avg, desc, eq, gte, lte, max, min, sql, sum, type Query } from 'drizzle-orm';
 import { MetricsRecord } from '../record';
 import { batchTable, metricsTable } from '../db/schema';
 import { assert } from 'node:console';
 import { Filters, VariableFilters } from '../validation/queries';
 import { alias, AnyPgTable } from 'drizzle-orm/pg-core';
-import { RowSchema } from '../validation/rows';
 
 export interface BatchResult {
   batchId: number;
@@ -30,10 +29,17 @@ export interface FilterListing {
 export type Breakdown = 
   Pick<typeof metricsTable.$inferInsert, 'schoolNetwork' | 'value'>
 
+
 export interface Indicators {
   matriculas: number | null;
   ofertasEscolas: number | null;
   taxaMediaDeAprovacao: number | null;
+}
+
+
+export interface MunicipalityData {
+  municipalityName: number;
+  value: number | null;
 }
 
 export interface SeriesData {
@@ -49,6 +55,7 @@ export interface MetricsRepository {
   listFilters(): Promise<FilterListing>;
   listData(filters: Filters, page: EmptyPage): Promise<Page<Omit<MetricsRecord, 'batchId'>>>;
   indicators(filters: Filters): Promise<Indicators>;
+  ranking(filters: Filters, limit: number): Promise<MunicipalityData[]>;
   series(filters: Filters): Promise<SeriesData[]>;
   breakdown(filters: Filters): Promise<Breakdown[]>;
 }
@@ -217,18 +224,25 @@ export class DrizzleMetricsRepository implements MetricsRepository {
     return indicators;
   }
 
-  async ranking({ municipality, ...f }: VariableFilters) {
+  async ranking({ municipality: _, ...f }: VariableFilters, limit: number): Promise<MunicipalityData[]> {
+    const average = avg(metricsTable.value)
+      .mapWith(Number)
+      .as('avg_value');
+
     const result = await this.db
       .select({
-        municipality: metricsTable.municipalityName,
-        value: metricsTable.value,
+        municipalityName: metricsTable.municipalityName,
+        value: average,
       })
       .from(metricsTable)
       .where(
         and(
           ...this.filterConditions(metricsTable, f)
         )
-      );
+      )
+      .limit(limit)
+      .orderBy(desc(average))
+      .groupBy(metricsTable.municipalityName);
 
     return result;
   }

@@ -2,8 +2,9 @@ import { Request, Response } from 'express';
 import busboy from 'busboy';
 import { CSVParser } from './parser';
 import { MetricsRepository } from './repositories/metrics';
-import { DataQuerySchema, FiltersSchema } from './validation/queries';
+import { DataQuerySchema, FiltersSchema, RankingQuerySchema } from './validation/queries';
 import { formatZodError } from './validation/errors';
+import { parseArgs } from 'node:util';
 
 type Handler = (req: Request, res: Response) => void;
 
@@ -127,6 +128,20 @@ export function series(repo: MetricsRepository): Handler {
         const result = await repo.series(parsed.data);
         success(res, result);
     };
+}
+
+export function ranking(repo: MetricsRepository): Handler {
+    return async (req, res) => {
+        const parsed = RankingQuerySchema.safeParse(req.query);
+        if (!parsed.success) {
+            error(res, formatZodError(parsed.error));
+            return;
+        }
+
+        const { limit, ...filters } = parsed.data;
+        const result = await repo.ranking(filters, limit);
+        success(res, result);
+    }
 }
 
 export function breakdown(repo: MetricsRepository): Handler {
