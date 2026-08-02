@@ -48,6 +48,7 @@ export interface SeriesData {
 }
 
 export interface MetricsRepository {
+  transaction<T>(callback: (repo: MetricsRepository) => Promise<T>): Promise<T>;
   createBatch(): Promise<BatchResult>;
   insertMetrics(records: MetricsRecord[], batchId: number): Promise<void>;
   completeBatch(batchId: number): Promise<void>;
@@ -96,6 +97,12 @@ export class DrizzleMetricsRepository implements MetricsRepository {
     }
 
     return conditions;
+  }
+
+  async transaction<T>(callback: (repo: MetricsRepository) => Promise<T>): Promise<T> {
+    return this.db.transaction(async (tx) => {
+      return callback(new DrizzleMetricsRepository(tx));
+    });
   }
 
   private variableAggregate(variable: string) {

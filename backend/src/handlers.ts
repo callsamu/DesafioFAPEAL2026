@@ -23,7 +23,6 @@ export const healthcheck: Handler = (req, res) => {
 export function upload(repo: MetricsRepository): Handler {
     return async (req, res) => {
         const bb = busboy({ headers: req.headers });
-        let batchId: number;
         let gotFile = false;
 
         bb.on('file', async (_, fileStream) => {
@@ -33,43 +32,48 @@ export function upload(repo: MetricsRepository): Handler {
             }
             gotFile = true;
 
-            const inserts: Promise<void>[] = [];
+            try {
+                const result = await repo.transaction(async (tx) => {
+                    let batchId: number | undefined;
+                    let chain: Promise<void> = Promise.resolve();
 
-            const parser = new CSVParser({
-                batchSize: 5000,
-                onBatch: async (batch) => {
-                    if (!batchId) {
-                        const result = await repo.createBatch();
-                        batchId = result.batchId;
-                    }
-                    inserts.push(repo.insertMetrics(batch, batchId));
-                },
-            });
-
-            parser.parse(fileStream)
-                .then(async (result) => {
-                    await Promise.all(inserts);
-                    await repo.completeBatch(batchId);
-
-                    success(res, {
-                        read: result.read,
-                        imported: result.imported,
-                        rejected: result.rejected,
-                        errors: Object.fromEntries(result.errors),
+                    const parser = new CSVParser({
+                        batchSize: 5000,
+                        onBatch: (batch) => {
+                            chain = chain.then(async () => {
+                                if (!batchId) {
+                                    batchId = (await tx.createBatch()).batchId;
+                                }
+                                await tx.insertMetrics(batch, batchId);
+                            });
+                        },
                     });
-                })
-                .catch(async (err: Error) => {
-                    if (!res.headersSent) {
-                        error(res, err.message);
+
+                    const parseResult = await parser.parse(fileStream);
+                    await chain;
+                    if (batchId) {
+                        await tx.completeBatch(batchId);
                     }
-                    if (batchId) await repo.deleteByBatchId(batchId);
+
+                    return parseResult;
                 });
+
+                success(res, {
+                    read: result.read,
+                    imported: result.imported,
+                    rejected: result.rejected,
+                    errors: Object.fromEntries(result.errors),
+                });
+            } catch (err) {
+                if (!res.headersSent) {
+                    error(res, (err as Error).message);
+                }
+            }
         });
 
         bb.on('error', async (err: Error) => {
             if (!res.headersSent) {
                 error(res, err.message);
-                if (batchId) await repo.deleteByBatchId(batchId);
             }
         });
 
