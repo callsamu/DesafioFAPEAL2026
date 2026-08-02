@@ -13,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { DEFAULT_FILTERS, useDashboard } from '@/context/DashboardContext'
@@ -65,6 +64,19 @@ export function FiltersPanel() {
   const options = (key: keyof typeof filterOptions): string[] =>
     (filterOptions[key] ?? []) as string[]
 
+  const years = [...(filterOptions.years ?? [])].sort((a, b) => a - b)
+
+  const setYear = (value: string) => {
+    const year = value === '' ? undefined : Number(value)
+    set({ year, startYear: undefined, endYear: undefined })
+  }
+
+  const setStartYear = (value: string) =>
+    set({ startYear: value === '' ? undefined : Number(value) })
+
+  const setEndYear = (value: string) =>
+    set({ endYear: value === '' ? undefined : Number(value) })
+
   return (
     <Card>
       <CardHeader>
@@ -91,32 +103,65 @@ export function FiltersPanel() {
 
         <div className="space-y-2">
           <Label>Ano</Label>
-          <Input
-            type="number"
-            placeholder="Exato"
-            value={draft.year ?? ''}
-            onChange={(e) => set({ year: e.target.value ? Number(e.target.value) : undefined, startYear: undefined, endYear: undefined })}
-          />
+          <Select
+            value={draft.year !== undefined ? String(draft.year) : ''}
+            onValueChange={setYear}
+            disabled={filtersLoading}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Exato" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={''}>{''}</SelectItem>
+              {years.map((y) => (
+                <SelectItem key={y} value={String(y)}>
+                  {y}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
           <Label>De</Label>
-          <Input
-            type="number"
-            placeholder="Início"
-            value={draft.startYear ?? ''}
-            onChange={(e) => set({ startYear: e.target.value ? Number(e.target.value) : undefined })}
-          />
+          <Select
+            value={draft.startYear !== undefined ? String(draft.startYear) : ''}
+            onValueChange={setStartYear}
+            disabled={filtersLoading}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Início" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={''}>{''}</SelectItem>
+              {years.map((y) => (
+                <SelectItem key={y} value={String(y)}>
+                  {y}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
           <Label>Até</Label>
-          <Input
-            type="number"
-            placeholder="Fim"
-            value={draft.endYear ?? ''}
-            onChange={(e) => set({ endYear: e.target.value ? Number(e.target.value) : undefined })}
-          />
+          <Select
+            value={draft.endYear !== undefined ? String(draft.endYear) : ''}
+            onValueChange={setEndYear}
+            disabled={filtersLoading}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Fim" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={''}>{''}</SelectItem>
+              {years.map((y) => (
+                <SelectItem key={y} value={String(y)}>
+                  {y}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
