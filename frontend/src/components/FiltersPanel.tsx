@@ -127,7 +127,7 @@ export function FiltersPanel() {
           <Select
             value={draft.startYear !== undefined ? String(draft.startYear) : ''}
             onValueChange={setStartYear}
-            disabled={filtersLoading}
+            disabled={filtersLoading || draft.year !== undefined}
           >
             <SelectTrigger>
               <SelectValue placeholder="Início" />
@@ -148,7 +148,7 @@ export function FiltersPanel() {
           <Select
             value={draft.endYear !== undefined ? String(draft.endYear) : ''}
             onValueChange={setEndYear}
-            disabled={filtersLoading}
+            disabled={filtersLoading || draft.year !== undefined}
           >
             <SelectTrigger>
               <SelectValue placeholder="Fim" />
