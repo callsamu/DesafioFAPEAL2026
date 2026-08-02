@@ -125,4 +125,6 @@ export const api = {
     }
     return body.data
   },
+
+  drop: () => request<{ deleted: boolean }>('/drop', { method: 'POST' }),
 }

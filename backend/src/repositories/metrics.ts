@@ -53,6 +53,7 @@ export interface MetricsRepository {
   insertMetrics(records: MetricsRecord[], batchId: number): Promise<void>;
   completeBatch(batchId: number): Promise<void>;
   deleteByBatchId(batchId: number): Promise<void>;
+  dropAll(): Promise<void>;
   listFilters(): Promise<FilterListing>;
   listData(filters: Filters, page: EmptyPage): Promise<Page<Omit<MetricsRecord, 'batchId'>>>;
   indicators(filters: Filters): Promise<Indicators>;
@@ -135,6 +136,10 @@ export class DrizzleMetricsRepository implements MetricsRepository {
 
   async deleteByBatchId(batchId: number): Promise<void> {
     await this.db.delete(metricsTable).where(eq(metricsTable.batchId, batchId));
+  }
+
+  async dropAll(): Promise<void> {
+    await this.db.execute(sql`TRUNCATE TABLE metrics, batches RESTART IDENTITY`);
   }
 
   async listFilters(): Promise<FilterListing> {

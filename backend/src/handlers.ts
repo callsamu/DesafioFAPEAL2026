@@ -87,6 +87,13 @@ export function upload(repo: MetricsRepository): Handler {
     };
 }
 
+export function drop(repo: MetricsRepository): Handler {
+    return async (req, res) => {
+        await repo.dropAll();
+        success(res, { deleted: true });
+    };
+}
+
 export function listFilters(repo: MetricsRepository): Handler {
     return async (req, res) => {
         const filters = await repo.listFilters();

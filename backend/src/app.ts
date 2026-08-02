@@ -15,6 +15,7 @@ export function createApp(opts: AppOpts) {
 
     app.get('/api/healthcheck', handlers.healthcheck);
     app.post('/api/upload', handlers.upload(repo));
+    app.post('/api/drop', handlers.drop(repo));
 
     app.get('/api/filters', handlers.listFilters(repo));
     app.get('/api/data', handlers.listData(repo));
