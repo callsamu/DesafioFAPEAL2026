@@ -57,11 +57,16 @@ export interface MunicipalityData {
   value: number | null
 }
 
+export interface RejectedRow {
+  line: number
+  raw: Record<string, string>
+  errors: string[]
+}
+
 export interface UploadResult {
   read: number
   imported: number
-  rejected: number
-  errors: Record<string, string[]>
+  rejectedRows: RejectedRow[]
 }
 
 type Envelope<T> = { status: 'success'; data: T } | { status: 'error'; error: unknown }

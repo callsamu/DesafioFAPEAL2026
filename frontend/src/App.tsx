@@ -60,7 +60,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <DashboardProvider>
         <Dashboard />
-        <Toaster position="top-right" />
+        <Toaster position="bottom-right" />
       </DashboardProvider>
     </QueryClientProvider>
   )
