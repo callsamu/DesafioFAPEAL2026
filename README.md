@@ -109,6 +109,13 @@ docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
 | `backend` | `http://localhost:3000` |
 | `frontend` (nginx) | `http://localhost:5173` |
 
+### 7. Documentação da API
+
+A documentação OpenAPI é gerada a partir dos comentários `@openapi` em `backend/src/routes.ts` e fica disponível em:
+
+- Swagger UI: `http://localhost:3000/api/docs`
+- Spec JSON: `http://localhost:3000/api/docs.json`
+
 
 ## Decisões sobre o tratamento de dados
 
@@ -125,7 +132,7 @@ de implementação foi escolhida por sua flexibilidade: é simples modificar o c
 também se torna viável uma acumulação de dados sem duplicação (o se mostra o principal problema de permitir vários uploads) em
 versões posteriores. Uploads individuais também poderiam ser trivialmente removidos.
 
-5. **Ausência de Dado:** ausência de linha é representada como `null` em toda a cadeia — banco, API, front —, nunca convertida para `0`. A interface exibe "sem dado para este período" nesses casos. A lista de anos disponíveis é obtida dinamicamente via `GET /api/filtros`, nunca fixada no código.
+5. **Ausência de Dado:** ausência de linha é representada como `null` em toda a cadeia — banco, API, front —, nunca convertida para `0`. A interface exibe "sem dado para este período" nesses casos. A lista de anos disponíveis é obtida dinamicamente via `GET /api/filters`, nunca fixada no código.
 
 6. **Combinações de dimensões inexistentes:** uma combinação de dimensões inexistentes é invalidada pelo backend, e no caso
 de taxas demográficas, impossibilitada pelo formulário de filtros (ex: ao selecionar uma variável demográfica, a rede é automaticamente
@@ -146,7 +153,6 @@ sentido para taxa de analfabetismo, por exemplo.
 
 - Mapa coroplético, não implementado por falta de tempo.
 - Escolas individuais como pontos no mapa (seção 8.2) — não implementado; exigiria base externa do INEP não coberta pelo CSV fornecido.
-- Documentação da API
 - Pipeline de CI/CD
 - Deploy
 
