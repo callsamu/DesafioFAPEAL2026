@@ -8,7 +8,7 @@ configDotenv();
 
 const url = getDbUrl();
 const db = drizzle(url);
-const origin = process.env.origin ?? '*';
+const origin = process.env.CORS_ORIGIN ?? '*';
 
 const port = Number(process.env.PORT ?? 3000);
 

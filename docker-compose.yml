@@ -30,3 +30,14 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
       DB_NAME: ${DB_NAME}
       PORT: 3000
+
+  frontend:
+    build:
+      context: ./frontend
+      target: development
+    container_name: frontend
+    restart: always
+    depends_on:
+      - backend
+    environment:
+      NODE_ENV: development

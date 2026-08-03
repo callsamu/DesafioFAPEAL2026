@@ -15,5 +15,12 @@ services:
     environment:
       NODE_ENV: production
 
+  frontend:
+    build:
+      context: ./frontend
+      target: production
+    ports:
+      - "5173:80"
+
 volumes:
   db_data:
